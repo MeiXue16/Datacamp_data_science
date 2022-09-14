@@ -166,3 +166,5 @@ print(np.std(arr3))             #标准差
 print(np.var(arr3))             #方差
 
 print(np.corrcoef(arr2[:,0], arr2[:, 1])) #第一列和第二列之间的相关系数
+
+
