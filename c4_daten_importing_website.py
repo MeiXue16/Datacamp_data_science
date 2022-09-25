@@ -119,9 +119,9 @@ from bs4 import BeautifulSoup
 url7 ='https://www.bilibili.com/video/BV1tf4y117Sh/?p=20&spm_id_from=pageDriver'
 response5 =requests.get(url7)
 soup3 =BeautifulSoup(response5.content, 'html.parser')
-print(soup3.title) #打印网页标题 <title data-vue-meta="true">S01E09.b.格式之日期和时间_哔哩哔哩_bilibili</title>
+print(soup3.title)                      #打印网页标题 <title data-vue-meta="true">S01E09.b.格式之日期和时间_哔哩哔哩_bilibili</title>
 
-a_tags = soup3.find_all('a')    # 找到所有'a'标签（定义超链接）：a_tags
+a_tags = soup3.find_all('a')            # 找到所有'a'标签（定义超链接）：a_tags
 print('type of a_tags',type(a_tags))    #<class 'bs4.element.ResultSet'>
 list1=[]
 for link in a_tags:
