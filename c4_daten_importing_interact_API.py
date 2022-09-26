@@ -127,7 +127,3 @@ ax.set(ylabel ='count')
 plt.show()
 
 
-
-
-
-
