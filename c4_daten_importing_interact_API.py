@@ -1,14 +1,14 @@
 #与API交互，从网上导入数据
 
 #加载和探索一个JSON文件
-# import json
-#
-# with open('a_movie.json') as file:
-#     data =json.load(file)       # 加载JSON文件到data中
-#
-# # 打印data中的每个键值对
-# for k in data.keys():
-#     print(k, ':', data[k])
+import json
+
+with open('a_movie.json') as file:
+    data =json.load(file)       # 加载JSON文件到data中
+
+# 打印data中的每个键值对
+for k in data.keys():
+    print(k, ':', data[k])
 
 #API请求
 #导入请求包
