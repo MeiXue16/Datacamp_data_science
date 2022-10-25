@@ -99,6 +99,7 @@ plt.ylabel('impact force (N)')
 # plt.show()
 
 
+
 # 青蛙数据的排列检验 Permutation test on frog data
 # 青蛙 A 的平均打击力为 0.71 牛顿 (N)，而青蛙 B 的平均打击力为 0.42 N，相差 0.29 N。青蛙的打击力可能相同，而观察到的差异是偶然的。
 # 零假设 H0：成年青蛙 与 幼年青蛙 冲击力相同
@@ -125,6 +126,7 @@ print('p-value=', p)  # p=0 <0.05, 拒绝原假设
 
 
 
+
 # 单样本自举Bootstrap 假设检验
 # 你想看看蛙 B 和蛙 C 是否有相似的冲击力。不幸的是，您没有 Frog C 的冲击力可用，但您知道它们的平均值为 0.55 N。因为您没有原始数据，
 # 所以您无法进行permutation检验，并且您无法评估来自的力的假设Frog B 和 Frog C 来自同一个分布。因此，您将检验另一个限制较少的假设： bootstrap 假设检验，您将采用平均值作为我们的检验统计量。
@@ -148,6 +150,7 @@ bs_replicates =bs_reps(force_c, np.mean, 1000)
 p_2= np.sum(bs_replicates <= np.mean(force_b))/ len(bs_replicates)
 
 print('p = ', p_2)  #p=1 >0.05, 接受原假设
+
 
 
 
@@ -180,10 +183,12 @@ print('p = ', p_3)      # p =  0.0001 < 0.05, 拒绝原假设
 # 均值差的双样本假设检验可以通过: permutation test(更准确)/ bootstrap test 完成
 # 单样本假设检验只能通过：bootstrap test 完成
 
+
 # 如果 H0:青蛙A和青蛙B具有相同的平均冲击力，但不一定具有相同的分布。
 # 这也是不可能用permutation检验的, 为了进行双样本自举测试，我们将两个阵列的平均数移至相同，因为我们正在模拟假设它们的平均数实际上是相等的。
 # 然后，我们从移位后的阵列中抽取引导样本，并计算出平均值的差异。这就构成了一个引导复制，我们产生了许多这样的复制。
 # p值是指均值差异大于或等于所观察到的差异的复制的比例。
+
 
 # a 和 b 类青蛙的均值
 mean =np.mean(force_concat)
