@@ -1,0 +1,399 @@
+#数据类型转换为整数
+
+select temperature  * cast(wind_speed as integer )  as wind_chill from waether ;
+
+-- Calculate the net amount as amount + fee
+SELECT transaction_date, amount + cast(fee as integer) AS net_amount 
+FROM transactions;
+
+-- Let's add a record to the table
+INSERT INTO transactions (transaction_date, amount, fee) 
+VALUES ('2018-09-24', 5454, '30');
+
+-- Doublecheck the contents
+SELECT *
+FROM transactions;
+
+#数据类型 text, char(5), varchar(25), boolean, date, time, timestamp, numeric(3,2) => 最大三位数，小数点后保留两位,
+# integer, bigint
+
+-- Specify the correct fixed-length character type
+ALTER TABLE professors
+ALTER COLUMN university_shortname
+TYPE char(3);
+
+-- Change the type of firstname
+alter table professors
+alter column firstname type varchar(64);
+
+-- Convert the values in firstname to a max. of 16 characters
+ALTER TABLE professors 
+ALTER COLUMN firstname 
+TYPE varchar(16)
+using substring(firstname, 1, 16);
+
+
+ALTER TABLE professors 
+ALTER COLUMN firstname 
+set not null;
+
+ALTER TABLE professors 
+ALTER COLUMN firstname 
+drop not null;
+
+ALTER TABLE professors 
+add constraint c1 unique(firstname);
+
+-- Make organizations.organization unique
+alter table organizations
+add constraint organization_unq unique(organization);
+
+-- Count the number of distinct values in the university_city column
+SELECT count(distinct(university_city)) 
+FROM universities;
+
+-- Try out different combinations
+select COUNT(distinct(firstname, lastname)) 
+FROM professors;
+
+ALTER TABLE professors 
+add constraint pk1 primary key (id);
+
+-- Rename the organization column to id
+alter table organizations
+rename column organization TO id;
+
+
+
+-- Make id a primary key
+ALTER TABLE organizations
+add constraint organization_pk primary KEY (id);
+
+-- Add the new column to the table
+ALTER TABLE professors 
+ADD COLUMN id serial;
+
+-- Make id a primary key
+ALTER TABLE professors 
+ADD CONSTRAINT professors_pkey PRIMARY KEY (id);
+
+-- Have a look at the first 10 rows of professors
+select * from professors limit 10;
+
+
+-- Count the number of distinct rows with columns make, model
+SELECT COUNT(DISTINCT(make, model)) 
+FROM cars;
+
+-- Add the id column
+ALTER TABLE cars
+ADD COLUMN id varchar(128);
+
+-- Update id with make + model
+UPDATE cars
+SET id = CONCAT(make, model);
+
+-- Make id a primary key
+alter table cars
+add constraint id_pk primary key(id);
+
+-- Have a look at the table
+SELECT * FROM cars;
+
+-- Create the table
+create table students (
+  last_name varchar(128) not null,
+  ssn int primary key,
+  phone_no char(12)
+);
+
+-- Rename the university_shortname column
+ALTER TABLE professors
+RENAME COLUMN university_shortname TO university_id;
+
+-- Add a foreign key on professors referencing universities
+ALTER TABLE professors
+add constraint professors_fkey FOREIGN KEY (university_id) REFERENCES universities (id);
+
+-- Try to insert a new professor
+INSERT INTO professors (firstname, lastname, university_id)
+VALUES ('Albert', 'Einstein', 'UZH');
+
+
+-- Select all professors working for universities in the city of Zurich
+SELECT p.lastname, u.id, u.university_city
+from professors as p
+left join universities as u
+ON p.university_id = u.id
+where u.university_city = 'Zurich';
+
+
+-- Add a professor_id column
+ALTER TABLE affiliations
+ADD COLUMN professor_id integer REFERENCES professors (id);
+
+-- Rename the organization column to organization_id
+ALTER TABLE affiliations
+RENAME organization TO organization_id;
+
+-- Add a foreign key on organization_id
+ALTER TABLE affiliations
+ADD CONSTRAINT affiliations_organization_fkey foreign key (organization_id) REFERENCES organizations (id);
+
+
+
+-- Update professor_id to professors.id where firstname, lastname correspond to rows in professors
+UPDATE affiliations
+SET professor_id = professors.id
+FROM professors
+WHERE affiliations.firstname = professors.firstname AND affiliations.lastname = professors.lastname;
+
+-- Have a look at the 10 first rows of affiliations again
+select * from affiliations limit 10;
+
+-- Drop the firstname column
+alter table affiliations
+DROP column firstname;
+
+-- Identify the correct constraint name
+SELECT constraint_name, table_name, constraint_type
+FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+
+-- Drop the right foreign key constraint
+ALTER TABLE affiliations
+DROP CONSTRAINT affiliations_organization_id_fkey;
+
+-- Add a new foreign key constraint from affiliations to organizations which cascades deletion
+ALTER TABLE affiliations
+ADD CONSTRAINT affiliations_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE;
+
+-- Delete an organization 
+DELETE FROM organizations 
+WHERE id = 'CUREM';
+
+-- Check that no more affiliations with this organization exist
+SELECT * FROM affiliations
+WHERE organization_id = 'CUREM';
+
+
+-- Count the total number of affiliations per university
+SELECT count(*), p.university_id 
+FROM affiliations as a
+JOIN professors as p
+ON a.professor_id = p.id
+-- Group by the university ids of professors
+GROUP BY p.university_id  
+order by count DESC;
+
+
+-- Filter the table and sort it
+SELECT COUNT(*), organizations.organization_sector, 
+professors.id, universities.university_city
+FROM affiliations
+JOIN professors
+ON affiliations.professor_id = professors.id
+JOIN organizations
+ON affiliations.organization_id = organizations.id
+JOIN universities
+ON professors.university_id = universities.id
+where organizations.organization_sector = 'Media & communication'
+GROUP BY organizations.organization_sector, 
+professors.id, universities.university_city
+order BY count DESC;
+
+
+
+# 错误处理 try catch
+
+-- Set up the TRY block
+BEGIN try
+	-- Add the constraint
+	ALTER TABLE products
+		ADD CONSTRAINT CHK_Stock CHECK (stock >= 0);
+end try
+-- Set up the CATCH block
+begin catch
+	SELECT 'An error occurred!';
+END catch
+
+
+#嵌套 错误处理
+-- Set up the first TRY block
+begin try
+	INSERT INTO buyers (first_name, last_name, email, phone)
+		VALUES ('Peter', 'Thompson', 'peterthomson@mail.com', '555000100');
+end try
+-- Set up the first CATCH block
+begin catch
+	SELECT 'An error occurred inserting the buyer! You are in the first CATCH block';
+    -- Set up the nested TRY block
+    begin try
+    	INSERT INTO errors 
+        	VALUES ('Error inserting a buyer');
+        SELECT 'Error inserted correctly!';
+	end try
+    -- Set up the nested CATCH block
+    begin catch
+    	SELECT 'An error occurred inserting the error! You are in the nested CATCH block';
+    end catch 
+end catch
+
+
+# 嵌套错误处理
+begin TRY
+	INSERT INTO products (product_name, stock, price)
+		VALUES ('Sun Bicycles ElectroLite - 2017', 10, 1559.99);
+end TRY
+begin catch
+	SELECT 'An error occurred inserting the product!';
+    begin TRY
+    	INSERT INTO errors
+        	VALUES ('Error inserting a product');
+    end TRY    
+    BEGIN catch
+    	SELECT 'An error occurred inserting the error!';
+    end catch    
+end catch
+
+
+# 显示 错误信息
+-- Set up the TRY block
+begin try  	
+	SELECT 'Total: ' + SUM(price * quantity) AS total
+	FROM orders  
+end try
+-- Set up the CATCH block
+begin catch  
+	-- Show error information.
+	SELECT  error_number() AS number,  
+        	error_severity() AS severity_level,  
+        	error_state() AS state,
+        	error_line() AS line,  
+        	error_message() AS message; 	
+end catch 
+
+
+
+# 显示 错误信息
+BEGIN TRY
+    INSERT INTO products (product_name, stock, price) 
+    VALUES	('Trek Powerfly 5 - 2018', 2, 3499.99),   		
+    		('New Power K- 2018', 3, 1999.99)		
+END TRY
+-- Set up the outer CATCH block
+begin CATCH
+	SELECT 'An error occurred inserting the product!';
+    -- Set up the inner TRY block
+    begin try
+    	-- Insert the error
+    	INSERT INTO errors 
+        	VALUES ('Error inserting a product');
+    end try    
+    -- Set up the inner CATCH block
+    begin CATCH
+    	-- Show number and message error
+    	SELECT 
+        	error_line() AS line,	   
+	error_message() AS message; 
+    end catch    
+end catch 
+
+
+# raiserror 错误挂起, 16 => level, 1 =>line
+
+if not exists (select * from staff where staff_id =15)
+raiserror ('no %s  with such %d.', 16, 1, 'staff number', 15)
+
+
+-- Change the value
+DECLARE @product_id INT = 5;
+
+IF NOT EXISTS (SELECT * FROM products WHERE product_id = @product_id)
+	RAISERROR('No product with id %d.', 11, 1, @product_id);
+ELSE 
+	SELECT * FROM products WHERE product_id = @product_id;
+
+
+
+BEGIN TRY
+	-- Change the value
+    DECLARE @product_id INT = 5;	
+    IF NOT EXISTS (SELECT * FROM products WHERE product_id = @product_id)
+        RAISERROR('No product with id %d.', 11, 1, @product_id);
+    ELSE 
+        SELECT * FROM products WHERE product_id = @product_id;
+END TRY
+BEGIN CATCH
+	SELECT ERROR_MESSAGE();
+END CATCH
+
+
+BEGIN TRY
+	-- Execute the stored procedure
+	EXEC insert_product
+    	-- Set the values for the parameters
+    	@product_name = 'Trek Conduit+',
+        @stock = 3,
+        @price = 499.99;
+END TRY
+-- Set up the CATCH block
+begin catch
+	-- Select the error message
+	SELECT error_message();
+end catch
+
+
+BEGIN TRY  
+	begin TRAN;
+		UPDATE accounts SET current_balance = current_balance - 100 WHERE account_id = 1;
+		INSERT INTO transactions VALUES (1, -100, GETDATE());
+        
+		UPDATE accounts SET current_balance = current_balance + 100 WHERE account_id = 5;
+		INSERT INTO transactions VALUES (5, 100, GETDATE());
+	commit TRAN;
+END TRY
+BEGIN CATCH  
+	rollback TRAN;
+END CATCH
+
+
+
+BEGIN TRY  
+	-- Begin the transaction
+	BEGIN TRAN;
+		UPDATE accounts SET current_balance = current_balance - 100 WHERE account_id = 1;
+		INSERT INTO transactions VALUES (1, -100, GETDATE());
+        
+		UPDATE accounts SET current_balance = current_balance + 100 WHERE account_id = 5;
+        -- Correct it
+		INSERT INTO transactions VALUES (500, 100, GETDATE());
+    -- Commit the transaction
+	commit TRAN;    
+END TRY
+BEGIN CATCH  
+	SELECT 'Rolling back the transaction';
+    -- Rollback the transaction
+	rollback TRAN;
+END CATCH
+
+
+
+
+-- Begin the transaction
+begin tran; 
+	UPDATE accounts set current_balance = current_balance + 100
+		WHERE current_balance < 5000;
+	-- Check number of affected rows
+	IF @@ROWCOUNT > 200 
+		BEGIN 
+        	-- Rollback the transaction
+			Rollback tran; 
+			SELECT 'More accounts than expected. Rolling back'; 
+		END
+	ELSE
+		BEGIN 
+        	-- Commit the transaction
+			commit tran; 
+			SELECT 'Updates commited'; 
+		END
