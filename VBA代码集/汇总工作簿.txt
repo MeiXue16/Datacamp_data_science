@@ -1,0 +1,23 @@
+Sub test()
+Dim str()
+Dim i As Integer
+Dim wb, wb1 As Workbook
+Dim sht As Worksheet
+
+On Error Resume Next '这一句上课时候没加，加上以后防止点了取消发生的错误
+Set wb1 = ActiveWorkbook
+Set sht1 = ActiveSheet
+On Error Resume Next
+str = Application.GetOpenFilename("Excel数据文件,*.xls*", , , , True)
+
+    For i = LBound(str) To UBound(str)
+        Set wb = Workbooks.Open(str(i))
+        For Each sht In wb.Sheets
+            sht.Copy after:=wb1.Sheets(wb1.Sheets.Count)
+            wb1.Sheets(wb1.Sheets.Count).Name = Split(wb.Name, ".")(0) & sht.Name
+        Next
+        wb.Close
+    Next
+
+
+End Sub

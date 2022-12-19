@@ -1,0 +1,31 @@
+Sub CollectData()
+    Dim Sht As Worksheet, rng As Range, k&, n&
+    Application.ScreenUpdating = False
+    '取消屏幕更新
+    n = Val(InputBox("请输入标题的行数", "提醒"))
+    If n < 0 Then MsgBox "标题行数不能为负数。", 64, "提示": Exit Sub
+    '取得用户输入的标题行数，如果为负数，退出程序
+    Cells.ClearContents
+    '清空当前表数据
+    For Each Sht In Worksheets
+    '遍历工作表
+        If Sht.Name <> ActiveSheet.Name Then
+        '如果工作表名称不等于当前表名则进行汇总动作……
+            Set rng = Sht.UsedRange
+            '定义rng为表格已用区域
+            k = k + 1
+            '累计K值
+            If k = 1 Then
+            '如果是首个表格，则K为1，则把标题行一起复制到汇总表
+                rng.Copy
+                [a1].PasteSpecial Paste:=xlPasteValues '仅粘贴数值
+            Else
+                '否则，扣除标题行后再复制黏贴到总表，只黏贴数值
+                rng.Offset(n).Copy
+                Cells(ActiveSheet.UsedRange.Rows.Count + 1, 1).PasteSpecial Paste:=xlPasteValues
+            End If
+        End If
+    Next
+    [a1].Activate
+    Application.ScreenUpdating = True '恢复屏幕刷新
+End Sub
